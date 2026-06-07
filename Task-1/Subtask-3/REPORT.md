@@ -163,6 +163,12 @@ This produces logits for every position, and the loss compares each predicted to
 
 ## Training Setup
 
+d_model = 64
+num_heads = 2
+ff_dim = d_model * 2
+num_layers= 2
+max_len = 200
+
 ### Autoregressive next-token learning
 
 The model is trained to predict token `t+1` from tokens `0..t`.
@@ -183,7 +189,17 @@ This is especially helpful for deep sequence models, where unbounded gradients c
 
 ## Evaluation and Metrics
 
-I used a **token-level accuracy** score for next-token prediction. The gMLP appeared to perform the best out of all three models, reaching an accuracy of almost 90% whereas the LSTM and RNN stayed around 25%.
+I used a **token-level accuracy** score for next-token prediction. The gMLP appeared to perform the best out of all three models, reaching an accuracy of almost 90% whereas the LSTM and RNN stayed around 25%. However, when I calculated perplexity for even the gMLP later on, it showed a very high value, signifying that it hadn't learned much. This is almost definitely due to the lack of intelligent sampling for these models and the vast dataset. 
+
+gMLP: ![gmlp](gmlp.png)
+
+LSTM: ![lstm](lstm.png)
+
+RNN: ![rnn](rnn.png)
+
+For the Transformer, I also plotted perplexity to see between how many words it was deciding between for its prediction, which gives a lot of information for Word Generation models.
+
+Transformer: ![transformer](transformer.png)
 
 ---
 
@@ -191,7 +207,8 @@ I used a **token-level accuracy** score for next-token prediction. The gMLP appe
 
 ### Decoder-only transformer generation
 
-`Decoder_Only (2).ipynb` shows it generating text greedily from a prompt
+`Decoder_Only (2).ipynb` shows it generating text greedily from a prompt: 
+It uses the beginning word and then generates an entire sequence. Its generation is **considerably coherent**. 
 
 ### Baseline model generation
 
@@ -210,8 +227,13 @@ Out of all 3 poems, the gMLP one was the most coherent one, and it seemed like i
 
 `Decoder_Only (2).ipynb` includes two interpretability visualizations:
 
-- attention heatmap for a user-provided phrase
-- top predicted token probabilities for the next token
+- attention heatmap for a user-provided phrase [the phrase I used was "The bird is on the flower in the sun and the leaves are falling"]:
+  ![heatmap](heatmap.png)
+
+The heatmap shows that the Transformer has successfully learned meaningful semantic relationships within the poetry corpus, notably the strong association between "flower" and "bird", reflecting their frequent co-occurrence in classic poetry. The causal masking is functioning correctly we can see that the upper right triangle is completely white, with later tokens like "leaves" and "falling" drawing on broader contextual information while earlier tokens focus on local dependencies. These attention patterns demonstrate that the model has captured genuine linguistic structure, and with a larger dataset the Transformer's ability to model long-range dependencies make it the strongest performer of all architectures tested.
+  
+- top predicted token probabilities for the next token [the token I used was "i", considering it shows up a lot of times in the data]:
+  ![bar](bar.png)
 
 These help illustrate what the model is attending to and what it believes are the most likely next words.
 
